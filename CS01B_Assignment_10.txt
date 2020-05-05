@@ -1,0 +1,288 @@
+Devorah Sachs, CS01B Assmt 10
+(Comments inserted in Notepad)
+This program uses a Java LinkedList to manage and manipulate Cards. We added methods with the ability to insert Cards in order, and remove one/ remove all
+instances of a specific card.
+
+import java.util.*;
+public class Foothill
+{
+   public static void main(String[] args)
+   {
+      LinkedList<Card> myList = new LinkedList<Card>();
+      int k;
+      Card card;
+      
+      //testing insert():
+      for (k = 0; k < 5; k++)
+      {
+         card = new Card(generateRandomCard());
+         insert(myList, card);
+         insert(myList, card);
+      }
+      
+      System.out.println(myList + "\n");
+      
+      //testing remove():
+      //Getting two distinct Cards:
+      Card card1 = myList.getFirst();
+      Card card2 = myList.getLast();
+      while (card2.compareTo(card1) == 0)
+         for (k = 0; k < myList.size(); k++)
+            card2 = myList.get(k);
+      
+      while (myList.remove(card1))
+        remove(myList, card1);
+      while (myList.remove(card2))
+        remove(myList, card2);
+    
+      System.out.println(myList + "\n");
+    
+      //testing removeAll():
+      if(!removeAll(myList, card1))
+        System.out.println("**Card not found**\n");
+    
+      removeAll(myList, myList.getFirst());
+    
+      System.out.println(myList + "\n");
+          
+   }
+   
+   static void insert(LinkedList<Card> my_List, Card x)
+   {
+      Card listCard;
+      ListIterator<Card> iT;
+      
+      for (iT = my_List.listIterator(); iT.hasNext();)
+      {
+         listCard = iT.next();
+         if (x.compareTo(listCard) <= 0)
+         {
+            iT.previous();
+            break;
+         }
+      }
+      iT.add(x);
+   }
+   
+   static boolean remove(LinkedList<Card> my_List, Card x)
+   {
+      ListIterator<Card> iT;
+      for (iT = my_List.listIterator(); iT.hasNext(); )
+         if (iT.next().compareTo(x) == 0)
+         {
+            iT.remove();
+            return true;
+         }
+      return false;
+   }
+   
+   static boolean removeAll(LinkedList<Card> my_List, Card x)
+   {
+      ListIterator<Card> iT;
+      for (iT = my_List.listIterator(); iT.hasNext(); )
+         if (iT.next().compareTo(x) == 0)
+         {
+            iT.remove();
+            if (my_List.contains(x))
+               continue;
+            return true;
+         }
+      return false;
+   }
+   
+   
+   
+   static Card generateRandomCard()
+   {
+      // if firstTime = true, use clock to seed, else fixed seed for debugging
+      Card.Suit suit;
+      char val;
+
+      int suitSelector, valSelector;
+
+      // get random suit and value
+      suitSelector = (int) (Math.random() * 4);
+      valSelector = (int) (Math.random() * 13);
+
+      // pick suit
+      suit = turnIntIntoSuit(suitSelector);
+      val = turnIntIntoVal(valSelector);
+
+      return new Card(val, suit);
+   }
+
+   // note:  this method not needed if we use int for suits instead of enum
+   static Card.Suit turnIntIntoSuit(int k)
+   {
+      return Card.Suit.values()[k];  // 
+   }
+
+   static char turnIntIntoVal(int k)
+   {
+      String legalVals = "23456789TJQKA";
+      
+      if (k < 0 | k >= legalVals.length())
+         return '?';
+      return legalVals.charAt(k);
+   }
+}
+
+//Same as Card class from previous assignments, with compareTo mechanisms added. I also commented out boolean equals() in keeping the requirement that all tests of equality for this program should be done using compareTo().
+
+class Card
+{
+   enum Suit 
+   {
+      clubs, diamonds, spades, hearts
+   }
+   
+   private char value;
+   private Suit suit;
+   private boolean cardError;
+   protected static char[] valueRanks = { '2', '3', '4', '5', '6', '7', '8', '9', 
+         'T', 'J', 'Q', 'K', 'A'};
+      protected static Suit[] suitRanks = {Suit.clubs, Suit.diamonds, Suit.hearts, 
+         Suit.spades};
+      protected static final int NUM_VALS = 13; 
+   
+   //constructors
+   public Card(char value, Suit suit)
+   {
+      set(value, suit);
+   }
+   
+   public Card(char value)
+   {
+      this(value, Suit.spades);
+   }
+   
+   public Card()
+   {
+      this('A', Suit.spades);
+   }
+   
+   public Card(Card card)
+   {
+      this.suit = card.suit;
+      this.value = card.value;
+   }
+   
+   //accessors
+   public char getValue()
+   {
+      return value;
+   }
+   
+   public Suit getSuit()
+   {
+      return suit;
+   }
+   
+   public boolean getCardError()
+   {
+      return cardError;
+   }
+   
+   //mutator
+   public boolean set(char value, Suit suit)
+   {
+      this.suit = suit;
+      
+      char upVal;
+      upVal = Character.toUpperCase(value);
+      
+      if (isValid(upVal, suit))
+      {
+         this.value = upVal;
+         cardError = false;
+         return true;         
+      }
+      else
+      {
+         cardError = true;
+         return false;
+      }
+   }
+   
+   //helper methods
+   private static boolean isValid(char value, Suit suit)
+   {
+      boolean valid;
+      if (value == 'A' || value == 'K' || value == 'Q' || value == 'J'
+            || value == 'T' || value == 'X' || (value >= '2' && value <= '9'))
+         valid = true;
+      else
+         valid = false;
+      
+      return valid;
+   }
+   
+   public String toString()
+   {
+      String cardString;
+     
+      if(cardError == true)
+         cardString = "**Illegal**";
+      else
+         cardString = String.valueOf(value) + " of " + suit;
+      
+      return cardString;      
+   }
+   
+   /*public boolean equals(Card card)
+   {
+      if(this.value == card.getValue() && this.suit == card.getSuit() 
+            && this.cardError == card.getCardError())
+         return true;
+      else
+         return false;
+   }*/
+   
+   public int compareTo(Card other)
+   {
+      if (this.value == other.value)
+         return ( getSuitRank(this.suit) - getSuitRank(other.suit) );
+
+      return ( 
+            getValueRank(this.value) 
+            - getValueRank(other.value) 
+            );
+   }
+
+   public static int getSuitRank(Suit st)
+   {
+      int k;
+
+      for (k = 0; k < 4; k++) 
+         if (suitRanks[k] == st)
+            return k;
+
+      // should not happen
+      return 0;
+   }
+
+   public  static int getValueRank(char val)
+   {
+      int k;
+
+      for (k = 0; k < NUM_VALS; k++) 
+         if (valueRanks[k] == val)
+            return k;
+
+      // should not happen
+      return 0;
+   }
+   
+}
+
+/*-----------------------------Test Run----------------------------------------
+[7 of clubs, 7 of clubs, 9 of diamonds, 9 of diamonds, T of diamonds, T of diamo
+nds, J of clubs, J of clubs, Q of hearts, Q of hearts]
+
+[9 of diamonds, 9 of diamonds, T of diamonds, T of diamonds, J of clubs, J of cl
+ubs]
+
+**Card not found**
+
+[T of diamonds, T of diamonds, J of clubs, J of clubs]
+------------------------------------------------------------------------------*/

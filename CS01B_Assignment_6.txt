@@ -1,0 +1,285 @@
+//Devorah Sachs, CS01B, Assignment 6: Queues Using Inheritance
+//The purpose of this program is to create a custom queue of CardNodes that we
+//can manipulate and display, etc. To that end, we created Node and Queue 
+//classes, and from these derived CardNode and CardQueue classes. We also
+//designed our own exception.
+
+import java.lang.Exception;
+public class Foothill
+{
+   public static void main(String[] args)
+   {
+      CardQueue q = new CardQueue();
+      CardNode p1 = new CardNode(new Card('4', Card.Suit.diamonds));
+      CardNode p2 = new CardNode(new Card('5', Card.Suit.diamonds));
+      CardNode p3 = new CardNode(new Card('6', Card.Suit.diamonds));
+      CardNode p4 = new CardNode(new Card('7', Card.Suit.diamonds));
+      CardNode p5 = new CardNode(new Card('8', Card.Suit.diamonds));
+      
+      q.add(p1);
+      q.add(p2);
+      q.add(p3);
+      q.add(p4);
+      q.add(p5);
+      
+      System.out.println(q.toString());
+      System.out.println();
+      
+      CardNode newCard = new CardNode(new Card());      
+      for (int k = 0; k < 6; k++)
+      {
+         try
+         {
+            newCard = (CardNode)q.remove();
+         } catch (QueueEmptyException e)
+         {
+            System.out.println("Queue empty. QueueEmptyException thrown:\n");
+            e.printStackTrace();
+            break;
+         }
+         System.out.println(newCard.toString());
+      }
+   }
+}
+
+//Thrown when Queue is empty
+class QueueEmptyException extends Exception
+{
+}
+
+//Derivative of Queue class, specially designed for CardNodes
+class CardQueue extends Queue
+{
+   public void addCard(Card newCard)
+   {
+      CardNode cNode = new CardNode(newCard);
+      super.add(cNode);
+   }
+   
+   public Card removeCard() throws QueueEmptyException
+   {
+      CardNode cNode = (CardNode)remove();
+      return cNode.getCardDatum();
+   }
+}
+
+//Derivative of Node class; objects have both a node and the data of one Card.
+class CardNode extends Node
+{
+  private Card cardDatum; 
+  
+  public CardNode(Card card)
+  {
+     super();
+     cardDatum = card;
+  }
+  
+  public Card getCardDatum()
+  {
+     return cardDatum;
+  }
+  
+  public String toString()
+  {
+     String retStr;
+     retStr = "[" + cardDatum.toString() + "]";
+     return retStr;
+  }
+  
+}
+
+//Creates Node objects to be used for linking in the Queue
+class Node
+{
+   protected Node next;
+   
+   public Node()
+   {
+      next = null;
+   }
+   
+   public String toString()
+   {
+      String retStr = "(generic node)";
+      return retStr;
+   }
+}
+
+//Skeleton structure of CardQueue. Linked list of nodes that can be added
+//and removed -- First in is first out.
+class Queue
+{
+   private Node head;
+   private Node tail;
+   
+   public Queue()
+   {
+      tail = null;
+      head = null;
+   }
+   
+   public void add(Node newNode)
+   {
+     if (head == null)
+     {
+        head = newNode;
+        tail = newNode;
+     }
+     else
+     {
+        tail.next = newNode;
+        newNode.next = null;
+        tail = newNode;
+     }
+   }
+   
+   public Node remove()
+   throws QueueEmptyException
+   {
+      Node temp;
+      temp = head;
+      
+      if(head == null)
+      {
+         throw new QueueEmptyException();
+      }
+      
+      else
+      {
+         head = head.next;
+         temp.next = null;
+      }
+
+      return temp;
+   }
+   
+   public String toString()
+   {
+      String retStr = "";
+      for (Node p = head; p != null; p = p.next)
+         retStr += p.toString();
+      return retStr;
+   }
+}
+
+//Card class from previous assignments
+class Card
+{
+   enum Suit 
+   {
+      clubs, diamonds, spades, hearts
+   }
+   
+   private char value;
+   private Suit suit;
+   private boolean cardError;
+   
+   //constructors
+   public Card(char value, Suit suit)
+   {
+      set(value, suit);
+   }
+   
+   public Card(char value)
+   {
+      this(value, Suit.spades);
+   }
+   
+   public Card()
+   {
+      this('A', Suit.spades);
+   }
+   
+   public Card(Card card)
+   {
+      this.suit = card.suit;
+      this.value = card.value;
+   }
+   
+   //accessors
+   public char getValue()
+   {
+      return value;
+   }
+   
+   public Suit getSuit()
+   {
+      return suit;
+   }
+   
+   public boolean getCardError()
+   {
+      return cardError;
+   }
+   
+   //mutator
+   public boolean set(char value, Suit suit)
+   {
+      this.suit = suit;
+      
+      char upVal;
+      upVal = Character.toUpperCase(value);
+      
+      if (isValid(upVal, suit))
+      {
+         this.value = upVal;
+         cardError = false;
+         return true;         
+      }
+      else
+      {
+         cardError = true;
+         return false;
+      }
+   }
+   
+   //helper methods
+   private static boolean isValid(char value, Suit suit)
+   {
+      boolean valid;
+      if (value == 'A' || value == 'K' || value == 'Q' || value == 'J'
+            || value == 'T' || value == 'X' || (value >= '2' && value <= '9'))
+         valid = true;
+      else
+         valid = false;
+      
+      return valid;
+   }
+   
+   public String toString()
+   {
+      String cardString;
+     
+      if(cardError == true)
+         cardString = "**Illegal**";
+      else
+         cardString = String.valueOf(value) + " of " + suit;
+      
+      return cardString;      
+   }
+   
+   public boolean equals(Card card)
+   {
+      if(this.value == card.getValue() && this.suit == card.getSuit() 
+            && this.cardError == card.getCardError())
+         return true;
+      else
+         return false;
+   }
+}
+
+/*------------------------------Test Run--------------------------------------
+[4 of diamonds][5 of diamonds][6 of diamonds][7 of diamonds][8 of diamonds]
+
+[4 of diamonds]
+[5 of diamonds]
+[6 of diamonds]
+[7 of diamonds]
+[8 of diamonds]
+Queue empty. QueueEmptyException thrown:
+
+QueueEmptyException
+   at Queue.remove(Foothill.java:132)
+   at Foothill.main(Foothill.java:27)
+
+----------------------------------------------------------------------------*/

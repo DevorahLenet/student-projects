@@ -1,0 +1,863 @@
+/*Devorah Sachs, CS01B Assignment 8:
+This program finishes the job of creating a functional seven segment display.
+ */
+public class Foothilll
+{
+   public static void main(String[] args) throws CloneNotSupportedException
+   {
+      SevenSegmentImage ssi = new SevenSegmentImage();
+      SevenSegmentImage myCopy;
+
+      System.out.println(
+         "Testing SevenSegmentImage ===================================");
+
+      ssi.setSize( 7, 9 );
+     
+      ssi.turnOnCellsForSegment( 'a' );
+      ssi.display();
+      ssi.turnOnCellsForSegment( 'b' );
+      ssi.display();
+      ssi.turnOnCellsForSegment( 'c' );
+      ssi.display();
+      ssi.turnOnCellsForSegment( 'd' );
+      ssi.display();
+      
+      System.out.println ("(Testing Clone - next three images:)");
+      try
+      {
+         myCopy = (SevenSegmentImage) ssi.clone();
+      }
+      catch  ( CloneNotSupportedException e )
+      {
+         System.out.println("** Clone Unsuccessful **");
+         myCopy = new SevenSegmentImage();
+      }
+      myCopy.display();
+      
+      myCopy.clearImage();
+      myCopy.turnOnCellsForSegment('a');
+      myCopy.turnOnCellsForSegment('g');
+      myCopy.turnOnCellsForSegment('d');
+      myCopy.display();
+      ssi.display();      
+    
+
+      ssi.clearImage();
+      ssi.turnOnCellsForSegment( 'e' );
+      ssi.display();
+      ssi.turnOnCellsForSegment( 'f' );
+      ssi.display();
+      ssi.turnOnCellsForSegment( 'g' );
+      ssi.display();
+
+      ssi.clearImage();
+      ssi.turnOnCellsForSegment( 'x' );
+      ssi.display();
+      ssi.turnOnCellsForSegment( '3' );
+      ssi.display();
+      
+      
+      
+  //Test for SevenSegmentDisplay:    
+      SevenSegmentDisplay  my7SegForCon = new SevenSegmentDisplay( 15, 13 );
+      SevenSegmentDisplay myClone;
+      int j;
+      
+      System.out.println(
+         "Testing SevenSegmentDisplay ===================================");
+
+      my7SegForCon.setSize( 7, 9 );
+      for ( j = 0; j < 16; j++ )
+      {
+         my7SegForCon.eval( j );
+         my7SegForCon.loadConsoleImage();
+         my7SegForCon.consoleDisplay();
+      }
+
+      for ( j = 5; j < 21; j += 4)
+      {
+         my7SegForCon.setSize( j, 2*j + 1 );
+         my7SegForCon.eval( 5 );
+         my7SegForCon.loadConsoleImage();
+         my7SegForCon.consoleDisplay();
+      }
+      
+      System.out.println("(Testing Clone:)");
+      
+      my7SegForCon.setSize(9, 9);
+      my7SegForCon.eval( 3 );
+      my7SegForCon.loadConsoleImage();
+      
+      
+      try
+      {
+         myClone = (SevenSegmentDisplay) my7SegForCon.clone();
+      }
+      catch  ( CloneNotSupportedException e )
+      {
+         System.out.println("** Clone Unsuccessful **");
+         myClone = new SevenSegmentDisplay();
+      }
+      
+      myClone.loadConsoleImage();
+      myClone.consoleDisplay();
+      
+      my7SegForCon.consoleDisplay();
+      
+      myClone.setSize(6, 6);
+      myClone.eval(2);
+      myClone.loadConsoleImage();
+      myClone.consoleDisplay();
+   }
+   }
+
+//This class makes it possible to set a pattern to be displayed on the console.
+class SevenSegmentImage implements Cloneable
+{
+
+   public static final int MIN_HEIGHT = 5;
+   public static final int MIN_WIDTH = 5;
+   public static final int MAX_HEIGHT = 65;
+   public static final int MAX_WIDTH = 41;
+   public static final String DRAW_CHAR = "*";
+   public static final String BLANK_CHAR = " ";
+   
+
+   private boolean[][] data;
+   private int topRow, midRow, bottomRow, leftCol, rightCol;
+
+   public SevenSegmentImage()
+   {
+      this(MIN_WIDTH, MIN_HEIGHT);
+   }
+
+   public SevenSegmentImage(int width, int height)
+   {
+     if(!setSize(width, height))
+     {
+        data = new boolean[MIN_WIDTH][MIN_HEIGHT];
+        topRow = 0; midRow = (MIN_WIDTH + 1)/2; bottomRow = MIN_WIDTH;
+        leftCol = 0; rightCol = MIN_HEIGHT;
+     }
+       
+   }
+
+   public void clearImage()
+   {
+      for (int k = 0; k < data.length; k++)
+      {
+         for (int j = 0; j < data[k].length; j++)
+            data[k][j] = false;
+      }
+   }
+
+   public boolean turnOnCellsForSegment(char segment)
+   {
+     if (segment == 'a' || segment == 'b'||segment == 'c'||segment =='d'
+           ||segment == 'e'||segment == 'f'||segment == 'g')
+     {
+        String charString = createCharStringHelper();
+        int segToDraw = charString.indexOf(segment);
+        switch (segToDraw)
+        {
+        case 0: drawHorizontal(topRow); break;      
+        case 1: drawVertical (rightCol, topRow, midRow); break;
+        case 2: drawVertical (rightCol, midRow, bottomRow); break;
+        case 3: drawHorizontal (bottomRow); break;
+        case 4: drawVertical (leftCol, midRow, bottomRow); break;
+        case 5: drawVertical (leftCol, topRow, midRow); break;
+        case 6: drawHorizontal (midRow); break;      
+        }
+        return true;
+     }
+     return false;
+        
+
+   }
+
+   public boolean setSize(int width, int height)
+   {
+     if (validateSize(width, height))
+     {        
+        topRow = 0; bottomRow = width - 1; midRow = (width - 1)/2;
+        leftCol = 0; rightCol = height - 1;
+        allocateCleanArray();
+        return true;
+     }
+     return false;
+        
+   }
+
+   public void display()
+   {
+      String outStr = "";
+      for (int k = 0; k < data.length; k++)
+      {
+         for (int j = 0; j < data[k].length; j++)
+         {
+            if (data[k][j] == false)
+               outStr += BLANK_CHAR;
+            else if (data[k][j] == true)
+               outStr += DRAW_CHAR;
+         } 
+         outStr += "\n";
+      }
+      System.out.println(outStr);
+      
+   }
+
+   public Object clone() throws CloneNotSupportedException
+   {
+      SevenSegmentImage newObject = (SevenSegmentImage)super.clone();
+      newObject.data = new boolean[(this.bottomRow)+1][(this.rightCol)+1];
+      for (int k = 0; k < newObject.data.length; k++)
+      {
+         for (int j = 0; j < newObject.data[k].length; j++)
+            newObject.data[k][j] = this.data[k][j];
+      }
+      //do we need to copy int members?
+      return newObject;
+   }
+
+   private boolean validateSize(int width, int height)
+   {
+      if (height >= MIN_HEIGHT && height <= MAX_HEIGHT && height % 2 != 0
+            && width >= MIN_WIDTH && width <= MAX_WIDTH && width % 2 != 0)
+         return true;
+      else
+         return false;
+   }
+
+   private void allocateCleanArray()
+   {
+      data = new boolean[bottomRow + 1][rightCol + 1];    
+      clearImage();
+   }
+
+   // helpers - not required, but used by instructor
+   void drawHorizontal(int row)
+   {
+      if (row == topRow || row == midRow || row == bottomRow)
+      {
+         for (int k = row; k < row + 1; k++)
+         {
+            for (int j = 0; j < data[row].length; j++)
+               data[row][j] = true;
+         }
+      }
+   }
+
+   void drawVertical(int col, int startRow, int stopRow)
+   {
+      if ((col == leftCol || col == rightCol) && startRow >= topRow && startRow 
+            < stopRow && stopRow <= bottomRow)
+      {
+         for (int k = startRow; k <= stopRow; k++)
+            data[k][col] = true;
+      }
+   }
+   
+   public String createCharStringHelper()
+   {
+      String charStringHelper = "abcdefg";
+      return charStringHelper;
+   }
+}
+
+//This class brings the previous and SevenSegmentLogic together to make it
+//possible for the user to specify which digit/letter to display, and then 
+//display it.
+class SevenSegmentDisplay  implements Cloneable
+{
+   private SevenSegmentImage theImage;
+   private SevenSegmentLogic theDisplay;
+
+   public SevenSegmentDisplay() throws CloneNotSupportedException
+   {
+      this(SevenSegmentImage.MIN_WIDTH, SevenSegmentImage.MIN_HEIGHT);
+   }
+   
+   public SevenSegmentDisplay( int width, int height ) 
+         throws CloneNotSupportedException
+   {
+      theImage = new SevenSegmentImage(width, height);
+      theDisplay = new SevenSegmentLogic();
+   }
+   
+   public boolean setSize( int width, int height )
+   {
+      if (!theImage.setSize(width, height))
+         return false;
+      return true;
+   }
+   
+   public void loadConsoleImage()
+   {
+      theImage.clearImage(); 
+      String charString = theImage.createCharStringHelper();
+      for (int k = 0; k < 7; k++)
+      {
+         if (theDisplay.getValOfSeg(k) == true)
+            theImage.turnOnCellsForSegment(charString.charAt(k));
+      }
+   }
+   
+   public void consoleDisplay()
+   {
+     loadConsoleImage();
+     theImage.display();
+   }
+   
+   public void eval( int input )
+   {
+     theDisplay.eval(input);
+   }
+
+   public Object clone() throws CloneNotSupportedException
+   {
+     SevenSegmentDisplay newObject = (SevenSegmentDisplay)super.clone();
+     theDisplay.clone();
+     theImage.clone();
+     
+     return newObject;
+   }
+}
+
+class BooleanFunc implements Cloneable
+{
+   public static int MAX_TABLE_FOR_CLASS = 65536;
+   public static int DEFAULT_TABLE_SIZE = 16;
+   
+   private int tableSize;
+   private boolean[] truthTable;
+   private boolean evalReturnIfError;
+   private boolean state;
+   
+   public BooleanFunc(int tableSize, boolean evalReturnIfError)
+   {
+      if (tableSize > MAX_TABLE_FOR_CLASS||tableSize < 1)
+         this.tableSize = DEFAULT_TABLE_SIZE;
+      else
+         this.tableSize = tableSize;
+      
+      truthTable = new boolean[this.tableSize];
+      this.evalReturnIfError = evalReturnIfError;
+      state = false;
+   }
+   
+   public BooleanFunc(int tableSize)
+   {
+      this(tableSize, false);
+   }
+   
+   public BooleanFunc()
+   {
+      this(DEFAULT_TABLE_SIZE, false);
+   }
+   
+   public boolean setTruthTableUsingTrue(int[] inputsThatProduceTrue)
+   {
+     if(inputsThatProduceTrue.length <= truthTable.length)
+     {
+        int index;
+        for (int k = 0; k < truthTable.length; k++)
+           truthTable[k] = false;
+        
+        for (int k = 0; k < inputsThatProduceTrue.length; k++)
+        {     
+           index = inputsThatProduceTrue[k];
+           if (index >= 0 && index < tableSize)
+              truthTable[index] = true;
+        }
+        return true;
+     }
+     return false;
+   
+   }
+   
+   public boolean setTruthTableUsingFalse(int[] inputsThatProduceFalse)
+   {
+      if (inputsThatProduceFalse.length <= truthTable.length)
+      {
+         int index;
+         for (int k = 0; k < tableSize; k++)
+            truthTable[k] = true;
+         
+         for (int k = 0; k < inputsThatProduceFalse.length; k++)
+         {
+            index = inputsThatProduceFalse[k];
+            if (index >= 0 && index < tableSize)
+               truthTable[index] = false;
+         } 
+         return true;
+      }
+      return false;
+   }
+   
+   public boolean eval(int input)
+   {
+      if (input < tableSize && input >= 0)
+      {
+         state = truthTable[input];
+         if(state == true)
+            return true;
+         else
+            return false;
+      }
+      else
+      {
+         evalReturnIfError = true;
+         return evalReturnIfError;
+      }
+   }
+   
+   public boolean getState()
+   {
+      return state;
+   }
+   
+   public Object clone() throws CloneNotSupportedException
+   {
+      BooleanFunc newObject = (BooleanFunc)super.clone();
+      
+      newObject.truthTable = new boolean[tableSize];
+      for ( int k = 0; k < tableSize; k++ )
+         newObject.truthTable[k] = this.truthTable[k];
+      
+      return newObject;
+   }   
+}
+
+//Creates array of BooleanFuncs, to form the basis for a display of any number
+//of segments.
+class MultiSegmentLogic implements Cloneable
+{
+   protected int numSegs;
+   protected BooleanFunc[] segs;
+   
+   public MultiSegmentLogic(int numSegs)
+   {
+      this.numSegs = numSegs;
+      segs = new BooleanFunc[this.numSegs];
+   }
+   
+   public MultiSegmentLogic()
+   {
+      this(0);
+   }
+   
+   public boolean setSegment(int segNum, BooleanFunc funcForThisSeg) 
+         throws CloneNotSupportedException
+   {
+      BooleanFunc myCopy = (BooleanFunc)funcForThisSeg.clone();
+    
+      if(segNum >= 0 && segNum < numSegs)
+      {
+         segs[segNum] = myCopy;
+         return true;
+      }
+      
+      else
+         return false;
+   }
+   
+   public boolean setNumSegs(int numSegments)
+   {
+      if(numSegments < 0)
+         return false;
+      else
+      {
+         numSegs = numSegments;
+         segs = new BooleanFunc[numSegs];
+      }
+      return true;
+   }
+   
+   public void eval(int input)
+   {
+      if (input < 0 || input > 16)
+         return;
+      else
+      {
+         for (int k = 0; k < numSegs; k++)
+         {
+            segs[k].eval(input);
+         }
+      }
+   }
+   
+   public Object clone() throws CloneNotSupportedException
+   {
+      MultiSegmentLogic newObject = (MultiSegmentLogic)super.clone();
+      
+      newObject.segs = new BooleanFunc[numSegs];
+      for ( int k = 0; k < numSegs; k++ )
+         newObject.segs[k] = (BooleanFunc)segs[k].clone();
+      
+      return newObject;
+   }      
+   
+}
+
+//Derived from MultiSegmentLogic with customized logic for the ubiquitous 
+//seven segment display.
+class SevenSegmentLogic extends MultiSegmentLogic
+{
+   public SevenSegmentLogic() throws CloneNotSupportedException
+   {
+      super(7);
+      loadSegments();
+   }
+   
+   public boolean getValOfSeg(int seg)
+   {
+      if (seg < 0 || seg > numSegs)
+         return false;
+      else
+      {
+         return segs[seg].getState();
+      }
+   }
+   
+   private BooleanFunc[] createFuncsInOrderArray()
+   {
+      BooleanFunc[] funcsInOrderArray = new BooleanFunc[7];
+      for (int k = 0; k < 7; k++)
+         funcsInOrderArray[k] = new BooleanFunc();
+      
+      int aSeg[] = {1, 4, 11, 13};
+      funcsInOrderArray[0].setTruthTableUsingFalse(aSeg);
+      int bSeg[] = {5, 6, 11, 12, 14, 15};
+      funcsInOrderArray[1].setTruthTableUsingFalse(bSeg);
+      int cSeg[] = {2, 12, 14, 15};
+      funcsInOrderArray[2].setTruthTableUsingFalse(cSeg);
+      int dSeg[] = {1, 4, 7, 10, 15};
+      funcsInOrderArray[3].setTruthTableUsingFalse(dSeg);
+      int eSeg[] = {1, 3, 4, 5, 7, 9};
+      funcsInOrderArray[4].setTruthTableUsingFalse(eSeg);
+      int fSeg[] = {1, 2, 3, 7, 13};
+      funcsInOrderArray[5].setTruthTableUsingFalse(fSeg);
+      int gSeg[] = {0, 1, 7, 12};
+      funcsInOrderArray[6].setTruthTableUsingFalse(gSeg);
+      
+      return funcsInOrderArray;      
+   }
+   
+   private void loadSegments() throws CloneNotSupportedException
+   {
+      BooleanFunc[] funcsInOrder = new BooleanFunc[7];
+      funcsInOrder = createFuncsInOrderArray();
+      for (int k = 0; k < numSegs; k++)
+         setSegment(k, funcsInOrder[k]);
+   }
+}
+
+/*---------------------------Test Runs-----------------------------------------
+Testing SevenSegmentImage ===================================
+*********
+         
+         
+         
+         
+         
+         
+
+*********
+        *
+        *
+        *
+         
+         
+         
+
+*********
+        *
+        *
+        *
+        *
+        *
+        *
+
+*********
+        *
+        *
+        *
+        *
+        *
+*********
+
+(Testing Clone - next three images:)
+*********
+        *
+        *
+        *
+        *
+        *
+*********
+
+*********
+         
+         
+*********
+         
+         
+*********
+
+*********
+        *
+        *
+        *
+        *
+        *
+*********
+
+         
+         
+         
+*        
+*        
+*        
+*        
+
+*        
+*        
+*        
+*        
+*        
+*        
+*        
+
+*        
+*        
+*        
+*********
+*        
+*        
+*        
+
+         
+         
+         
+         
+         
+         
+         
+
+         
+         
+         
+         
+         
+         
+         
+
+Testing SevenSegmentDisplay ===================================
+*********
+*       *
+*       *
+*       *
+*       *
+*       *
+*********
+
+        *
+        *
+        *
+        *
+        *
+        *
+        *
+
+*********
+        *
+        *
+*********
+*        
+*        
+*********
+
+*********
+        *
+        *
+*********
+        *
+        *
+*********
+
+*       *
+*       *
+*       *
+*********
+        *
+        *
+        *
+
+*********
+*        
+*        
+*********
+        *
+        *
+*********
+
+*********
+*        
+*        
+*********
+*       *
+*       *
+*********
+
+*********
+        *
+        *
+        *
+        *
+        *
+        *
+
+*********
+*       *
+*       *
+*********
+*       *
+*       *
+*********
+
+*********
+*       *
+*       *
+*********
+        *
+        *
+*********
+
+*********
+*       *
+*       *
+*********
+*       *
+*       *
+*       *
+
+*        
+*        
+*        
+*********
+*       *
+*       *
+*********
+
+*********
+*        
+*        
+*        
+*        
+*        
+*********
+
+        *
+        *
+        *
+*********
+*       *
+*       *
+*********
+
+*********
+*        
+*        
+*********
+*        
+*        
+*********
+
+*********
+*        
+*        
+*********
+*        
+*        
+*        
+
+***********
+*          
+***********
+          *
+***********
+
+*******************
+*                  
+*                  
+*                  
+*******************
+                  *
+                  *
+                  *
+*******************
+
+***************************
+*                          
+*                          
+*                          
+*                          
+*                          
+***************************
+                          *
+                          *
+                          *
+                          *
+                          *
+***************************
+
+***********************************
+*                                  
+*                                  
+*                                  
+*                                  
+*                                  
+*                                  
+*                                  
+***********************************
+                                  *
+                                  *
+                                  *
+                                  *
+                                  *
+                                  *
+                                  *
+***********************************
+
+(Testing Clone:)
+*********
+        *
+        *
+        *
+*********
+        *
+        *
+        *
+*********
+
+*********
+        *
+        *
+        *
+*********
+        *
+        *
+        *
+*********
+
+*********
+        *
+        *
+        *
+*********
+*        
+*        
+*        
+*********
+
+
+*/
