@@ -1,0 +1,84 @@
+<!-- HTML for Lab4 -->
+
+<!--
+ -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CS22A Lab4</title>
+	<script>
+	    		
+		
+		function displayAnswer(bmi) {
+			var rating;
+			
+			if (bmi < 18.5)
+			    rating = "Underweight";
+			else if (bmi >= 18.5 && bmi < 25)
+			    rating = "Normal";
+	        else if (bmi >= 25 && bmi < 30)
+			    rating = "Overweight";
+			else if (bmi >= 30)
+			    rating = "Obese";
+					
+			var answer = `${bmi.toFixed(2)}, rated ${rating}`;
+			document.getElementById("answer").value = answer;
+
+		}
+		
+		function calculateAndShowBMI() {
+		    
+			var htFt = parseFloat(document.getElementById("height-ft").value);
+			var htIn = parseFloat(document.getElementById("height-in").value);
+			var wt = parseFloat(document.getElementById("weight").value);
+			
+			if(isNaN(htFt) || htFt < 0 || isNaN(htIn) || htIn < 0 || isNaN(wt) || wt < 0) {
+			    document.getElementById("bmi-form").reset();
+				document.getElementById("error").innerHTML = "Values must be positive numbers. Please try again.";
+			}
+			else {
+			    var ht = (htFt * 12) + htIn;
+			    var bmiResult = (wt * 703)/(ht * ht);
+				document.getElementById("error").innerHTML = "";
+			
+			    displayAnswer(bmiResult);
+			}
+			
+		}
+	</script>
+	
+	<style>
+	    #outer-div {width: 500px; border: solid gray 2px; padding-top: 0px; font-family: arial;}
+		#inner-div {padding: 5px;}
+		h2 {background-color: darkblue; color: white; margin: 0px;}
+		p {color: red; font-size: tiny;}
+
+	</style>
+</head>
+
+<body>
+
+	<div id="outer-div">
+	    <h2>BMI Calculator</h2>
+        <div id="inner-div">
+		<form id="bmi-form">
+			<label id="lbl-height" for="height-ft">Enter your height in feet and inches:</label>
+			<input type="text" id="height-ft" name="height-ft" size="4"><span id="ft">ft</span>
+			<input type="text" id="height-in" name="height-in" size="4"><span id="in">in</span>		
+			<br/>
+			
+			<label id="lbl-weight" for="weight">Enter your weight in pounds:</label>
+			<input type="text" id="weight" name="weight" size="4"><span id="lbs">lbs</span> 
+			<p id="error"></p>
+			<input type="button" id="btn-done" name="btn-done" value="Done" onClick="calculateAndShowBMI()">
+			<input type="reset" value="Reset">
+			<br/> <br/>
+			<input type="text" id="answer" name="answer" size="25" value="Your BMI: " readonly>
+	    </form>
+		</div>		
+	    
+	</div>
+    
+</body>
+</html>
